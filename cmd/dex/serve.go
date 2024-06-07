@@ -278,6 +278,7 @@ func runServe(options serveOptions) error {
 		SupportedResponseTypes: c.OAuth2.ResponseTypes,
 		SkipApprovalScreen:     c.OAuth2.SkipApprovalScreen,
 		AlwaysShowLoginScreen:  c.OAuth2.AlwaysShowLoginScreen,
+		ClaimsMutationURL:  c.OAuth2.ClaimsMutationURL,
 		PasswordConnector:      c.OAuth2.PasswordConnector,
 		Headers:                c.Web.Headers.ToHTTPHeader(),
 		AllowedOrigins:         c.Web.AllowedOrigins,

@@ -148,6 +148,8 @@ type OAuth2 struct {
 	AlwaysShowLoginScreen bool `json:"alwaysShowLoginScreen"`
 	// This is the connector that can be used for password grant
 	PasswordConnector string `json:"passwordConnector"`
+
+	ClaimsMutationURL string `json:"claimsMutationURL"`
 }
 
 // Web is the config format for the HTTP server.

@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"bytes"
 	"github.com/go-jose/go-jose/v4"
 
 	"github.com/dexidp/dex/connector"
@@ -350,6 +350,33 @@ func genSubject(userID string, connID string) (string, error) {
 	return internal.Marshal(sub)
 }
 
+func (s *Server) mutateClaims(claims storage.Claims, url string) (storage.Claims, error) {
+    client := &http.Client{}
+    claimsJSON, err := json.Marshal(claims)
+    if err != nil {
+        return storage.Claims{}, err
+    }
+	
+	s.logger.Info("Claims JSON", "claims", string(claimsJSON))
+
+    resp, err := client.Post(url, "application/json", bytes.NewBuffer(claimsJSON))
+    if err != nil {
+        return storage.Claims{}, err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        return storage.Claims{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+    }
+
+    var newClaims storage.Claims
+    if err := json.NewDecoder(resp.Body).Decode(&newClaims); err != nil {
+        return storage.Claims{}, err
+    }
+
+    return newClaims, nil
+}
+
 func (s *Server) newIDToken(clientID string, claims storage.Claims, scopes []string, nonce, accessToken, code, connID string) (idToken string, expiry time.Time, err error) {
 	keys, err := s.storage.GetKeys()
 	if err != nil {
@@ -399,6 +426,14 @@ func (s *Server) newIDToken(clientID string, claims storage.Claims, scopes []str
 			return "", expiry, fmt.Errorf("error computing c_hash: #{err}")
 		}
 		tok.CodeHash = cHash
+	}
+
+	if s.claimsMutationURL != "" {
+    	claims, err = s.mutateClaims(claims, s.claimsMutationURL)
+		if err != nil {
+			s.logger.Error("failed to replace claims", "err", err)
+			return "", expiry, fmt.Errorf("failed to replace claims: %v", err)
+		}
 	}
 
 	for _, scope := range scopes {

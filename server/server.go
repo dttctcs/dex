@@ -90,6 +90,8 @@ type Config struct {
 	// If enabled, the connectors selection page will always be shown even if there's only one
 	AlwaysShowLoginScreen bool
 
+	ClaimsMutationURL string
+
 	RotateKeysAfter        time.Duration // Defaults to 6 hours.
 	IDTokensValidFor       time.Duration // Defaults to 24 hours
 	AuthRequestsValidFor   time.Duration // Defaults to 24 hours
@@ -190,6 +192,8 @@ type Server struct {
 	refreshTokenPolicy *RefreshTokenPolicy
 
 	logger *slog.Logger
+
+	claimsMutationURL string
 }
 
 // NewServer constructs a server from the provided config.
@@ -302,6 +306,7 @@ func newServer(ctx context.Context, c Config, rotationStrategy rotationStrategy)
 		refreshTokenPolicy:     c.RefreshTokenPolicy,
 		skipApproval:           c.SkipApprovalScreen,
 		alwaysShowLogin:        c.AlwaysShowLoginScreen,
+		claimsMutationURL: 	    c.ClaimsMutationURL,
 		now:                    now,
 		templates:              tmpls,
 		passwordConnector:      c.PasswordConnector,
